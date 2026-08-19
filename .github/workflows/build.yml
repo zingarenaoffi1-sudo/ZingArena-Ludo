@@ -23,6 +23,10 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      # 🔥 PRO FIX 1: Official Gradle plugin lagaya hai taaki environment theek rahe
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
       - name: Install & Setup Capacitor
         run: |
           npm init -y
@@ -39,12 +43,16 @@ jobs:
           cp icon.png assets/icon.png
           npx capacitor-assets generate --android
 
+      # 🔥 PRO FIX 2: Build se pehle server ka saara corrupted kachra delete!
+      - name: Wipe Corrupted Cache
+        run: rm -rf ~/.gradle/caches/ || true
+
       - name: Build Android APK
         run: |
           cd android
           chmod +x gradlew
-          # Yahan humne server ko strictly order diya hai ki line se kaam kare bina atke
-          ./gradlew clean assembleDebug --no-daemon --no-parallel --no-build-cache
+          # 🔥 PRO FIX 3: --max-workers=1 lagaya hai taaki server ek sath 2 kaam karke atke nahi
+          ./gradlew clean assembleDebug --no-daemon --max-workers=1
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
