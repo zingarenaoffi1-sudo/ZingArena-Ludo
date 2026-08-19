@@ -1,0 +1,377 @@
+/* =========================================
+   ULTRA LUDO PRO - FULL CSS STYLESHEET
+========================================= */
+
+/* --- 1. VARIABLES (Colors) --- */
+:root {
+    --bg-dark: #121220;
+    --board-bg: #ffffff;
+    --grid-line: #999999;
+    
+    --red-main: #ff2a2a;
+    --red-dark: #cc0000;
+    --green-main: #00cc00;
+    --green-dark: #008000;
+    --yellow-main: #ffcc00;
+    --yellow-dark: #cca300;
+    --blue-main: #1a53ff;
+    --blue-dark: #0022cc;
+}
+
+/* --- 2. GLOBAL SETUP --- */
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    font-family: 'Poppins', sans-serif; 
+    user-select: none; 
+    -webkit-tap-highlight-color: transparent; 
+}
+
+body { 
+    background-color: var(--bg-dark); 
+    color: white; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    min-height: 100vh; 
+    overflow: hidden; 
+}
+
+#game-wrapper { 
+    width: 100%; 
+    max-width: 400px; 
+    height: 100vh; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: space-between; 
+    padding: 10px; 
+}
+
+/* --- 3. HEADER & HUD --- */
+.game-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 10px; 
+    background: rgba(255, 255, 255, 0.05); 
+    border-radius: 10px; 
+}
+.logo-text { 
+    color: #ff9900; 
+    text-shadow: 0 0 10px rgba(255, 153, 0, 0.5); 
+    font-weight: bold; 
+}
+.menu-btn { 
+    background: #333; 
+    color: white; 
+    border: 1px solid #555; 
+    padding: 5px 10px; 
+    border-radius: 5px; 
+    cursor: pointer; 
+    font-size: 12px; 
+}
+
+.player-hud { 
+    display: flex; 
+    justify-content: space-between; 
+    padding: 10px 15px; 
+}
+.player-profile { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    background: rgba(0, 0, 0, 0.4); 
+    padding: 5px 15px 5px 5px; 
+    border-radius: 20px; 
+    border: 1px solid rgba(255, 255, 255, 0.1); 
+    opacity: 0.3; 
+    transition: opacity 0.3s; 
+}
+.avatar { 
+    width: 30px; 
+    height: 30px; 
+    border-radius: 50%; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    font-weight: 800; 
+    color: white; 
+    border: 2px solid white; 
+}
+.player-name { 
+    font-size: 12px; 
+    font-weight: 600; 
+}
+
+.red-bg { background-color: var(--red-main) !important; }
+.green-bg { background-color: var(--green-main) !important; }
+.yellow-bg { background-color: var(--yellow-main) !important; }
+.blue-bg { background-color: var(--blue-main) !important; }
+
+/* --- 4. BOARD CONTAINER --- */
+.board-container { 
+    width: 360px; 
+    height: 360px; 
+    margin: 0 auto; 
+    background: var(--grid-line); 
+    border: 5px solid #222; 
+    border-radius: 8px; 
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.8); 
+    padding: 2px; 
+}
+
+#ludo-board {
+    display: grid;
+    grid-template-columns: repeat(15, 1fr);
+    grid-template-rows: repeat(15, 1fr);
+    width: 100%; 
+    height: 100%;
+    gap: 1px; 
+    position: relative;
+}
+
+/* --- 5. BIG BASES --- */
+.base {
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    position: relative; 
+    border: 1px solid #111; 
+    z-index: 2; 
+}
+.red-base { grid-area: 1 / 1 / 7 / 7; background-color: var(--red-main); }
+.green-base { grid-area: 1 / 10 / 7 / 16; background-color: var(--green-main); }
+.blue-base { grid-area: 10 / 1 / 16 / 7; background-color: var(--blue-main); }
+.yellow-base { grid-area: 10 / 10 / 16 / 16; background-color: var(--yellow-main); }
+
+/* --- 6. INNER 2x2 GRID BOX (The Fix) --- */
+.inner-base {
+    width: 65%; 
+    height: 65%;
+    background-color: white; /* Ludo King jaisa safed background */
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    grid-template-rows: 1fr 1fr;
+    gap: 8px; /* Khanon ke beech ka gap */
+    padding: 8px; 
+    border-radius: 12px;
+    box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* COLORED SQUARES (4 Khanas) */
+.token-slot {
+    width: 100%; 
+    height: 100%;
+    border-radius: 6px; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    position: relative;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.4);
+}
+
+/* Parent base ke hisaab se khane ka color set hoga */
+.red-base .token-slot { background-color: var(--red-main); }
+.green-base .token-slot { background-color: var(--green-main); }
+.blue-base .token-slot { background-color: var(--blue-main); }
+.yellow-base .token-slot { background-color: var(--yellow-main); }
+
+.ludo-cell { 
+    background-color: white; 
+    position: relative; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+}
+
+/* --- 7. 3D TOKENS (Gotiyan) --- */
+.token {
+    width: 20px; 
+    height: 20px; 
+    border-radius: 50%; 
+    position: absolute; 
+    z-index: 10;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.6), inset 0 -4px 5px rgba(0,0,0,0.4), inset 0 4px 4px rgba(255,255,255,0.7);
+    border: 2px solid white; 
+    transition: all 0.3s ease; 
+    cursor: pointer;
+}
+.token.highlight-move { 
+    animation: tokenJump 0.8s infinite; 
+    z-index: 20; 
+    box-shadow: 0 0 15px 5px rgba(255, 255, 255, 0.8); 
+}
+@keyframes tokenJump { 
+    0% { transform: translateY(0) scale(1); } 
+    50% { transform: translateY(-8px) scale(1.15); } 
+    100% { transform: translateY(0) scale(1); } 
+}
+
+.token-red { background: radial-gradient(circle at 30% 30%, #ff6666, var(--red-dark)); }
+.token-green { background: radial-gradient(circle at 30% 30%, #66ff66, var(--green-dark)); }
+.token-blue { background: radial-gradient(circle at 30% 30%, #6666ff, var(--blue-dark)); }
+.token-yellow { background: radial-gradient(circle at 30% 30%, #ffff66, var(--yellow-dark)); }
+
+/* --- 8. CONTROLS & FOOTER --- */
+.game-footer { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 10px 20px; 
+    background: rgba(0, 0, 0, 0.3); 
+    border-radius: 10px; 
+}
+.turn-indicator { 
+    font-size: 16px; 
+    font-weight: 800; 
+}
+.red-text { color: var(--red-main); } 
+.green-text { color: var(--green-main); } 
+.yellow-text { color: var(--yellow-main); } 
+.blue-text { color: var(--blue-main); }
+
+.dice-wrapper { 
+    display: flex; 
+    align-items: center; 
+    gap: 15px; 
+}
+#dice-container { 
+    width: 50px; 
+    height: 50px; 
+    background: white; 
+    border-radius: 10px; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5); 
+    font-size: 40px; 
+    color: #111; 
+    cursor: pointer; 
+}
+.rolling { animation: shake 0.4s ease-in-out infinite; }
+@keyframes shake { 
+    0% { transform: rotate(0deg) scale(1); } 
+    25% { transform: rotate(-20deg) scale(1.1); } 
+    50% { transform: rotate(20deg) scale(1); } 
+    75% { transform: rotate(-20deg) scale(1.1); } 
+    100% { transform: rotate(0deg) scale(1); } 
+}
+
+/* --- 9. MODALS --- */
+.modal { 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(0, 0, 0, 0.85); 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    z-index: 1000; 
+}
+.hidden { 
+    display: none !important; 
+}
+.modal-content { 
+    background: linear-gradient(135deg, #2a2a3e, #1a1a2e); 
+    padding: 30px; 
+    border-radius: 15px; 
+    text-align: center; 
+    border: 2px solid #ff9900; 
+    box-shadow: 0 0 30px rgba(255, 153, 0, 0.3); 
+    width: 90%; 
+    max-width: 300px; 
+}
+.ultra-roll-btn { 
+    background: linear-gradient(to bottom, #ff9900, #cc7a00); 
+    color: white; 
+    border: none; 
+    padding: 10px 20px; 
+    font-weight: 800; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    text-transform: uppercase; 
+}
+/* --- SAFE ZONE & MOVEMENT HIGHLIGHTS --- */
+.safe-zone-icon {
+    font-size: 18px;
+    color: rgba(0, 0, 0, 0.3);
+    pointer-events: none; /* Taki goti click karne me problem na ho */
+    position: absolute;
+}
+.token.highlight-move { 
+    animation: tokenJump 0.8s infinite; 
+    z-index: 20; 
+    box-shadow: 0 0 15px 5px rgba(255, 255, 255, 0.8), 0 4px 6px rgba(0,0,0,0.6); 
+    border-color: #ffeb3b;
+}
+
+/* =========================================
+   ULTRA LUDO PRO - WINNING TAAJ & ANIMATIONS
+========================================= */
+
+/* --- 1. WINNING BOX TAAJ (CROWN) --- */
+#cell-7-7 {
+    position: relative;
+    background: radial-gradient(circle, #ffd700, #ff8c00) !important; /* Gold gradient */
+    box-shadow: 0 0 15px #ffcc00, inset 0 0 20px rgba(0, 0, 0, 0.8) !important;
+    z-index: 5;
+    border-radius: 4px;
+}
+
+#cell-7-7::after {
+    content: "👑";
+    font-size: 30px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: pulseCrown 1.5s ease-in-out infinite;
+    filter: drop-shadow(0 5px 5px rgba(0,0,0,0.9));
+}
+
+@keyframes pulseCrown {
+    0% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.3); text-shadow: 0 0 10px white; }
+    100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+/* --- 2. GOTI MOVEMENT ANIMATION --- */
+.token.moving {
+    animation: movePop 0.4s ease-out forwards;
+    z-index: 50; /* Chalte waqt goti sabse upar dikhe */
+}
+
+@keyframes movePop {
+    0% { 
+        transform: scale(0.5) translateY(-30px); 
+        opacity: 0.7; 
+    }
+    50% { 
+        transform: scale(1.4) translateY(-15px); 
+        box-shadow: 0 15px 25px rgba(255, 255, 255, 0.9), 0 0 20px var(--yellow-main); 
+        opacity: 1; 
+    }
+    100% { 
+        transform: scale(1) translateY(0); 
+    }
+}
+
+/* =========================================
+   🔥 MOBILE RESPONSIVENESS FIX 🔥
+========================================= */
+@media (max-width: 768px) {
+    /* Mobile me board ko thoda sa adjust karta hai taaki footer ko jagah mile */
+    .board-container {
+        transform: scale(0.97); 
+    }
+    
+    /* Dice aur timer ko upar shift karne ka jaadu */
+    .game-footer {
+        transform: translateY(-25px); 
+        z-index: 100;
+        position: relative;
+    }
+}

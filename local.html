@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ultra Ludo - Local Offline</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- FLUID PLAYER LIBRARIES -->
+    <script src="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.js"></script>
+</head>
+<body>
+    <!-- 🔥 VIDEO AD OVERLAY 🔥 -->
+    <div id="videoAdOverlay" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+        <p style="color: #ff9900; margin-bottom: 15px; font-weight: bold; font-size: 18px;">Game is loading... Please watch this short ad</p>
+        <video id="vast-video-player-local" style="width: 100%; max-width: 600px;"></video>
+        <button id="skipAdBtn" style="display:none; margin-top: 20px; background: #ef4444; color: white; padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">Skip Ad ⏭️</button>
+    </div>
+
+    <div id="game-wrapper">
+        <div class="game-header">
+            <div class="logo-text">ULTRA LUDO (LOCAL)</div>
+            <button class="menu-btn" onclick="window.location.href='index.html'">Main Menu</button>
+        </div>
+
+        <div id="my-identity-badge" class="hidden" style="text-align: center; background: #ff9900; color: #000; font-weight: 900; padding: 5px; margin: 5px 10px; border-radius: 5px; text-transform: uppercase;"></div>
+
+        <!-- Players HUD & Board -->
+        <div class="player-hud"><div class="player-profile" id="profile-red"><div class="avatar red-bg">1</div><div class="player-name">Player 1 (Red)</div></div><div class="player-profile" id="profile-green"><div class="avatar green-bg">2</div><div class="player-name">Player 2 (Green)</div></div></div>
+        <div class="board-container"><div id="ludo-board"></div></div>
+        <div class="player-hud"><div class="player-profile" id="profile-blue"><div class="avatar blue-bg">4</div><div class="player-name">Player 4 (Blue)</div></div><div class="player-profile" id="profile-yellow"><div class="avatar yellow-bg">3</div><div class="player-name">Player 3 (Yellow)</div></div></div>
+
+        <!-- Footer -->
+        <div class="game-footer">
+            <div style="display: flex; flex-direction: column;"><div class="turn-indicator" id="turn-text">WAITING TO START...</div><div id="timer-text" style="font-size: 13px; color: #ffeb3b; font-weight: bold; margin-top: 3px;">⏳ Time left: 25s</div></div>
+            <div class="dice-wrapper"><div id="dice-container">🎲</div></div>
+        </div>
+        
+        <!-- LOCAL STARTUP MODAL -->
+        <div id="startup-modal" class="modal">
+            <div class="modal-content">
+                <h2 style="color: #ff9900; margin-bottom: 20px;">LOCAL OFFLINE</h2>
+                <p style="color: #ddd; margin-bottom: 20px;">Select Players</p>
+                <button class="ultra-roll-btn" onclick="startLocalGame(2)" style="width: 100%; margin-bottom: 10px;">2 Players</button>
+                <button class="ultra-roll-btn" onclick="startLocalGame(3)" style="width: 100%; margin-bottom: 10px;">3 Players</button>
+                <button class="ultra-roll-btn" onclick="startLocalGame(4)" style="width: 100%; margin-bottom: 10px;">4 Players</button>
+                <button class="menu-btn" onclick="window.location.href='index.html'" style="width: 100%; padding: 8px;">Back</button>
+            </div>
+        </div>
+        <div id="mode-selection-modal" class="hidden"></div><div id="online-modal" class="hidden"></div>
+    </div>
+
+    <!-- LOCAL AD BRIDGE LOGIC (3 Chance Logic) -->
+    <script>
+        let localMatchCount = 0;
+        window.showAd = function() {
+            localMatchCount++;
+            if (localMatchCount >= 3) {
+                localMatchCount = 0; // Reset counter
+                playActualAd();
+            }
+        };
+
+        function playActualAd() {
+            let adOverlay = document.getElementById("videoAdOverlay");
+            let skipBtn = document.getElementById("skipAdBtn");
+            adOverlay.classList.remove("hidden");
+            skipBtn.style.display = "none";
+
+            let safetyTimer = setTimeout(() => { skipBtn.style.display = "block"; skipBtn.onclick = closeAd; }, 6000);
+
+            try {
+                if (!window.vPlayerLocal) {
+                    window.vPlayerLocal = fluidPlayer('vast-video-player-local', {
+                        layoutControls: { playButtonShowing: false, autoPlay: true, controlBar: { autoHide: true } },
+                        vastOptions: { adList: [{ roll: 'preRoll', vastTag: 'https://faithfuloccasion.com/d.mRFyzjdcGuNavGZQGyUB/_egmr9su/Z/UZl/kEPcTpcQzAMSzdUP2/NBjvknt/N/zSMvzyNuTCYG3QMqwx' }] }
+                    });
+                    window.vPlayerLocal.on('playing', function() { clearTimeout(safetyTimer); });
+                    window.vPlayerLocal.on('ended', closeAd);
+                    window.vPlayerLocal.on('error', function() { skipBtn.style.display = "block"; skipBtn.onclick = closeAd; });
+                } else { window.vPlayerLocal.play(); }
+            } catch (e) { closeAd(); }
+        }
+
+        function closeAd() {
+            document.getElementById("videoAdOverlay").classList.add("hidden");
+            if (window.vPlayerLocal) window.vPlayerLocal.pause();
+        }
+    </script>
+    <script src="local.js"></script>
+</body>
+</html>
