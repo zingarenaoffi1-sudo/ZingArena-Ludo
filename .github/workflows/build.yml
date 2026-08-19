@@ -23,13 +23,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # 🔥 Yahan se setup-gradle hata diya kyunki GitHub ka cache down hai
-
       - name: Install & Setup Capacitor
         run: |
           npm init -y
-          npm install @capacitor/core @capacitor/cli @capacitor/android
-          npm install @capacitor/assets --save-dev
+          # Sab kuch ek sath fast install karne ke liye
+          npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor/assets --save-dev
           
           mkdir www
           rsync -a --exclude=www --exclude=node_modules --exclude=.git --exclude=.github ./ ./www/
@@ -41,15 +39,14 @@ jobs:
           cp icon.png assets/icon.png
           npx capacitor-assets generate --android
 
-      - name: Wipe Corrupted Cache (Zabardasti Safai)
-        run: rm -rf ~/.gradle/caches/ || true
-
       - name: Build Android APK
+        env:
+          # 🔥 NUCLEAR FIX: Hum server ka default folder bypass karke apna khud ka fresh folder bana rahe hain!
+          GRADLE_USER_HOME: ${{ github.workspace }}/.gradle_custom_home
         run: |
           cd android
           chmod +x gradlew
-          # 🔥 PRO FIX 4: --refresh-dependencies lagaya hai taaki direct fresh download ho aur error page na aaye
-          ./gradlew clean assembleDebug --no-daemon --max-workers=1 --refresh-dependencies
+          ./gradlew clean assembleDebug --no-daemon --no-parallel --no-build-cache
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
