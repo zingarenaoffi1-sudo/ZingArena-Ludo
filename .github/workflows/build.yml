@@ -1,14 +1,11 @@
-name: Build Zing Arena APK
+name: Build ZingArena APK
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
       - master
-
-permissions:
-  contents: read
+  workflow_dispatch:
 
 jobs:
   build:
@@ -22,76 +19,64 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
 
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
-      - name: Check package.json
+      - name: Check versions
         run: |
-          echo "Using existing package.json:"
-          cat package.json
-          echo ""
-          echo "Project files:"
-          ls -la
+          node --version
+          npm --version
+          java -version
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Prepare www
         run: |
           rm -rf www
           mkdir -p www
 
-          cp index.html www/
-          cp style.css www/
-          cp script.js www/
+          rsync -a \
+            --exclude='www' \
+            --exclude='node_modules' \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='android' \
+            ./ ./www/
 
-          if [ -f local.html ]; then cp local.html www/; fi
-          if [ -f local.js ]; then cp local.js www/; fi
-          if [ -f online.html ]; then cp online.html www/; fi
-
-          if [ -f icon.png ]; then cp icon.png www/; fi
-
-          echo "WWW:"
-          find www -maxdepth 1 -type f -print
-
-      - name: Install Capacitor
+      - name: Install Capacitor Android
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
-
-      - name: Create Capacitor config
-        run: |
-          if [ ! -f capacitor.config.json ] && [ ! -f capacitor.config.ts ]; then
-            cat > capacitor.config.json <<'EOF'
-          {
-            "appId": "com.zingarena.ludo",
-            "appName": "Zing Arena",
-            "webDir": "www"
-          }
-          EOF
-          fi
-
-      - name: Add Android
-        run: |
-          if [ ! -d android ]; then
-            npx cap add android
-          fi
+          npx cap init "ZingArena" "com.zingarena.app" --web-dir www
+          npx cap add android
 
       - name: Sync Capacitor
-        run: npx cap sync android
-
-      - name: Build APK
-        working-directory: android
         run: |
+          npx cap sync android
+
+      - name: Configure Gradle
+        run: |
+          cd android
+
+          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g" >> gradle.properties
+          echo "org.gradle.daemon=false" >> gradle.properties
+          echo "org.gradle.parallel=false" >> gradle.properties
+          echo "org.gradle.caching=false" >> gradle.properties
+
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Build Debug APK
+        run: |
+          cd android
+          ./gradlew assembleDebug --no-daemon --max-workers=2
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: ZingArena-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
