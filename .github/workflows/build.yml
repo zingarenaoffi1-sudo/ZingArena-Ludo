@@ -17,16 +17,11 @@ jobs:
         with:
           node-version: 18
 
-      # 🔥 Change 1: Java ka engine badal diya (Zulu lagaya hai)
       - name: Setup Java (JDK 17)
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
-
-      # 🔥 Change 2: GitHub ka pre-installed kachra zabardasti delete kar rahe hain
-      - name: Force Clean Gradle Cache
-        run: rm -rf ~/.gradle/caches/ || true
 
       - name: Install & Setup Capacitor
         run: |
@@ -43,12 +38,22 @@ jobs:
           cp icon.png assets/icon.png
           npx capacitor-assets generate --android
 
+      # 🔥 MAX FIX 1: Super Admin (sudo) power se server ka poora kachra jadh se khatam
+      - name: The Ultimate Cache Wipe
+        run: |
+          sudo rm -rf ~/.gradle
+          sudo rm -rf android/.gradle
+          sudo rm -rf android/app/build
+
       - name: Build Android APK
+        env:
+          # 🔥 MAX FIX 2: Gradle ko zabardasti 4GB RAM de di taaki file banate waqt atke nahi
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g"
         run: |
           cd android
           chmod +x gradlew
-          # 🔥 Change 3: --refresh-dependencies lagaya hai taaki fresh download ho
-          ./gradlew clean assembleDebug --no-daemon --refresh-dependencies
+          # 🔥 MAX FIX 3: Saare safe flags ek sath laga diye
+          ./gradlew clean assembleDebug --no-daemon --no-parallel --no-build-cache
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
