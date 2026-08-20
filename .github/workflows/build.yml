@@ -7,53 +7,41 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
+          distribution: 'temurin'
           java-version: '17'
 
-      - name: Install and Setup Capacitor
-        run: |
+      - run: |
           npm init -y
           npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor/assets --save-dev
-          
           mkdir -p www
           rsync -a --exclude=www --exclude=node_modules --exclude=.git --exclude=.github ./ ./www/
-          
           npx cap init "Zing Ludo" "com.zingarena.ludo" --web-dir www
           npx cap add android
-          
           mkdir -p assets
           cp icon.png assets/icon.png
           npx capacitor-assets generate --android
 
-      - name: Force Clean Cache
-        run: |
-          sudo rm -rf ~/.gradle || true
-          sudo rm -rf android/.gradle || true
-          sudo rm -rf android/app/build || true
-
-      - name: Build Android APK
-        env:
-          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g"
-        run: |
+      - run: |
           cd android
+          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g" >> gradle.properties
+          echo "org.gradle.daemon=false" >> gradle.properties
+          echo "org.gradle.parallel=false" >> gradle.properties
+          echo "org.gradle.vfs.watch=false" >> gradle.properties
+          echo "org.gradle.caching=false" >> gradle.properties
           chmod +x gradlew
-          ./gradlew clean assembleDebug --no-daemon --no-parallel --no-build-cache
+          ./gradlew clean assembleDebug --max-workers=1 --refresh-dependencies
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: ZingLudo-App
           path: android/app/build/outputs/apk/debug/app-debug.apk
