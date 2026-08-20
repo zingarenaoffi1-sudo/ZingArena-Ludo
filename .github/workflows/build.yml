@@ -1,4 +1,4 @@
-Abe mera name: Build Zing Arena APK
+name: Build Zing Arena APK
 
 on:
   workflow_dispatch:
