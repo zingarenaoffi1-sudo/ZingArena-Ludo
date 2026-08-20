@@ -19,22 +19,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
 
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-
-      - name: Check versions
-        run: |
-          node --version
-          npm --version
-          java -version
-
-      - name: Install dependencies
-        run: npm ci
 
       - name: Prepare www
         run: |
@@ -50,6 +40,7 @@ jobs:
 
       - name: Install Capacitor Android
         run: |
+          npm init -y
           npm install @capacitor/core @capacitor/cli @capacitor/android
           npx cap init "ZingArena" "com.zingarena.app" --web-dir www
           npx cap add android
