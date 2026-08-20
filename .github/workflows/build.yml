@@ -17,13 +17,13 @@ jobs:
         with:
           node-version: 18
 
-      - name: Setup Java (JDK 17)
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Install & Setup Capacitor
+      - name: Install and Setup Capacitor
         run: |
           npm init -y
           npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor/assets --save-dev
@@ -38,21 +38,18 @@ jobs:
           cp icon.png assets/icon.png
           npx capacitor-assets generate --android
 
-      # 🔥 MAX FIX 1: Super Admin (sudo) power se server ka poora kachra jadh se khatam
-      - name: The Ultimate Cache Wipe
+      - name: Force Clean Cache
         run: |
-          sudo rm -rf ~/.gradle
-          sudo rm -rf android/.gradle
-          sudo rm -rf android/app/build
+          sudo rm -rf ~/.gradle || true
+          sudo rm -rf android/.gradle || true
+          sudo rm -rf android/app/build || true
 
       - name: Build Android APK
         env:
-          # 🔥 MAX FIX 2: Gradle ko zabardasti 4GB RAM de di taaki file banate waqt atke nahi
           GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g"
         run: |
           cd android
           chmod +x gradlew
-          # 🔥 MAX FIX 3: Saare safe flags ek sath laga diye
           ./gradlew clean assembleDebug --no-daemon --no-parallel --no-build-cache
 
       - name: Upload APK
