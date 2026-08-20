@@ -26,27 +26,25 @@ jobs:
       - name: Install & Setup Capacitor
         run: |
           npm init -y
-          # Sab kuch ek sath fast install karne ke liye
           npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor/assets --save-dev
           
-          mkdir www
+          mkdir -p www
           rsync -a --exclude=www --exclude=node_modules --exclude=.git --exclude=.github ./ ./www/
           
           npx cap init "Zing Ludo" "com.zingarena.ludo" --web-dir www
           npx cap add android
           
+          # Tera icon set kar raha hai
           mkdir -p assets
           cp icon.png assets/icon.png
           npx capacitor-assets generate --android
 
       - name: Build Android APK
-        env:
-          # 🔥 NUCLEAR FIX: Hum server ka default folder bypass karke apna khud ka fresh folder bana rahe hain!
-          GRADLE_USER_HOME: ${{ github.workspace }}/.gradle_custom_home
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew clean assembleDebug --no-daemon --no-parallel --no-build-cache
+          # Server outage theek ho gaya hai, bas safe side ke liye extra load hata diya hai
+          ./gradlew clean assembleDebug --no-daemon --no-parallel
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
