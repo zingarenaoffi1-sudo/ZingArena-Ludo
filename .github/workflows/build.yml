@@ -24,7 +24,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
       - name: Prepare www
         run: |
@@ -52,11 +52,12 @@ jobs:
       - name: Configure Gradle
         run: |
           cd android
+          chmod +x gradlew
+          ./gradlew wrapper --gradle-version 8.7
           echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g" >> gradle.properties
           echo "org.gradle.daemon=false" >> gradle.properties
           echo "org.gradle.parallel=false" >> gradle.properties
           echo "org.gradle.caching=false" >> gradle.properties
-          chmod +x gradlew
 
       - name: Build Debug APK
         run: |
