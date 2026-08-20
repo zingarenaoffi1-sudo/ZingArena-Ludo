@@ -1,4 +1,4 @@
-name: Build Zing Arena APK
+Abe mera name: Build Zing Arena APK
 
 on:
   workflow_dispatch:
@@ -15,33 +15,32 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout source
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
 
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-          cache: gradle
 
-      - name: Check project
+      - name: Check package.json
         run: |
-          node --version
-          npm --version
+          echo "Using existing package.json:"
+          cat package.json
+          echo ""
           echo "Project files:"
           ls -la
 
-      - name: Install npm dependencies
+      - name: Install dependencies
         run: npm install
 
-      - name: Prepare web directory
+      - name: Prepare www
         run: |
           rm -rf www
           mkdir -p www
@@ -50,18 +49,20 @@ jobs:
           cp style.css www/
           cp script.js www/
 
-          [ -f local.html ] && cp local.html www/ || true
-          [ -f local.js ] && cp local.js www/ || true
-          [ -f online.html ] && cp online.html www/ || true
+          if [ -f local.html ]; then cp local.html www/; fi
+          if [ -f local.js ]; then cp local.js www/; fi
+          if [ -f online.html ]; then cp online.html www/; fi
 
-          echo "www contents:"
-          find www -maxdepth 2 -type f -print
+          if [ -f icon.png ]; then cp icon.png www/; fi
 
-      - name: Install Capacitor Android
+          echo "WWW:"
+          find www -maxdepth 1 -type f -print
+
+      - name: Install Capacitor
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
 
-      - name: Create Capacitor config if missing
+      - name: Create Capacitor config
         run: |
           if [ ! -f capacitor.config.json ] && [ ! -f capacitor.config.ts ]; then
             cat > capacitor.config.json <<'EOF'
@@ -73,16 +74,16 @@ jobs:
           EOF
           fi
 
-      - name: Add Android platform
+      - name: Add Android
         run: |
           if [ ! -d android ]; then
             npx cap add android
           fi
 
-      - name: Sync web files to Android
+      - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Build debug APK
+      - name: Build APK
         working-directory: android
         run: |
           chmod +x gradlew
@@ -91,6 +92,6 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: ZingArena-debug-apk
+          name: ZingArena-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
