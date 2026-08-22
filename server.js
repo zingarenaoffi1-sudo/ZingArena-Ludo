@@ -7,11 +7,10 @@ const cors = require('cors');
 const app = express();
 app.use(cors());
 
-
+// 🟢 CRON-JOB WALA ROUTE (Server ko zinda rakhne ke liye)
 app.get('/', (req, res) => {
     res.send('Ludo Server is Awake and Running!');
 });
-// 👆 --------------------------------------- 👆
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -24,17 +23,22 @@ let rooms = {};
 io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
 
-    // 1. Quick Matchmaking Logic
+    // 1. Quick Matchmaking Logic (FIXED BUG)
     socket.on('find-match', (data) => {
         const reqPlayers = data.playersRequired;
         if(!waitingPlayers[reqPlayers]) waitingPlayers[reqPlayers] = [];
         
-        waitingPlayers[reqPlayers].push(socket);
+        // 🔥 BUG FIX: Check karo ki yeh player pehle se line mein toh nahi khada!
+        const isAlreadyWaiting = waitingPlayers[reqPlayers].some(s => s.id === socket.id);
+        
+        if (!isAlreadyWaiting) {
+            waitingPlayers[reqPlayers].push(socket);
+        }
         
         if(waitingPlayers[reqPlayers].length === reqPlayers) {
             const roomId = 'ROOM_' + Math.random().toString(36).substr(2, 6);
             const players = waitingPlayers[reqPlayers];
-            waitingPlayers[reqPlayers] = []; // reset
+            waitingPlayers[reqPlayers] = []; // queue reset
             
             const colors = ['red', 'green', 'yellow', 'blue'];
             const roomData = [];
@@ -88,8 +92,19 @@ io.on('connection', (socket) => {
         socket.to(data.roomId).emit('remote-token-moved', data);
     });
 
+    // 🔥 BUG FIX 2: Agar player 'Back' button dabaye, toh queue se hata do
+    socket.on('cancel-action', () => {
+        for (let size in waitingPlayers) {
+            waitingPlayers[size] = waitingPlayers[size].filter(s => s.id !== socket.id);
+        }
+    });
+
+    // 🔥 BUG FIX 3: Agar player ka internet band ho jaye, toh bhi queue se hatao
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
+        for (let size in waitingPlayers) {
+            waitingPlayers[size] = waitingPlayers[size].filter(s => s.id !== socket.id);
+        }
     });
 });
 
