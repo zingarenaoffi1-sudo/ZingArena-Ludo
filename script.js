@@ -59,14 +59,15 @@ function triggerInterstitialAd(reason) {
     // 15-second safety lock so fast clicking doesn't cause spam flag
     if (now - lastAdTime < 15000) {
         console.log("⏳ Ad skipped due to quick click safety.");
-        return;
+        return Promise.resolve();
     }
     lastAdTime = now;
 
-    // Trigger HilltopAds full-screen ad
+    // Trigger HilltopAds full-screen ad, aur jab tak ye band (dismiss) na ho tab tak wait karo
     if (typeof window.showAd === 'function') {
-        window.showAd();
+        return Promise.resolve(window.showAd());
     }
+    return Promise.resolve();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -130,12 +131,15 @@ function backToModeSelect() {
     if(badge) badge.classList.add('hidden');
 }
 
-function findOnlineMatch(count) { 
+async function findOnlineMatch(count) { 
+    // 🔥 STEP 1: PEHLE AD DIKHAO
+    document.getElementById("quick-match-display").innerText = "Ad load ho raha hai... 📺";
+    await triggerInterstitialAd("Matchmaking Started");
+
+    // ✅ STEP 2: AD KE BAAD HI AB ASLI MATCHMAKING SHURU HOGI
     connectToServer();
     document.getElementById("quick-match-display").innerText = "Matchmaking pls wait sometime... ⏳";
     socket.emit('find-match', { playersRequired: count });
-    // 🔥 TRIGGER AD ON MATCHMAKING
-    triggerInterstitialAd("Matchmaking Started");
 }
 
 // --- SOCKET.IO CONNECTION & SYNC LISTENERS ---
@@ -259,24 +263,30 @@ function showMyIdentity(color) {
     }
 }
 
-function createPrivateRoom(count) {
+async function createPrivateRoom(count) {
+    // 🔥 STEP 1: PEHLE AD DIKHAO
+    document.getElementById("room-created-display").innerText = "Ad load ho raha hai... 📺";
+    await triggerInterstitialAd("Room Created");
+
+    // ✅ STEP 2: AD KE BAAD HI AB ROOM BANEGA
     connectToServer();
     document.getElementById("room-created-display").innerText = "Making the room...";
     socket.emit('create-room', { maxPlayers: count });
-    // 🔥 TRIGGER AD ON ROOM CREATE
-    triggerInterstitialAd("Room Created");
 }
 
-function joinPrivateRoom() {
+async function joinPrivateRoom() {
     let id = document.getElementById("room-id-input").value.trim();
-    if (id) {
-        connectToServer();
-        socket.emit('join-room', { roomId: id });
-        // 🔥 TRIGGER AD ON ROOM JOIN
-        triggerInterstitialAd("Joining Room");
-    } else {
+    if (!id) {
         alert("Enter the valid room id to join room!");
+        return;
     }
+
+    // 🔥 STEP 1: PEHLE AD DIKHAO
+    await triggerInterstitialAd("Joining Room");
+
+    // ✅ STEP 2: AD KE BAAD HI AB ROOM JOIN HOGA
+    connectToServer();
+    socket.emit('join-room', { roomId: id });
 }
 
 // --- GAME INITIALIZATION ---
