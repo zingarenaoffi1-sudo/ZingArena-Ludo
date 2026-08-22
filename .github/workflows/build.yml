@@ -38,17 +38,22 @@ jobs:
             --exclude='android' \
             ./ ./www/
 
-      # 🚀 YAHAN HAI LOGO WALA MAGIC 
-      - name: Install Capacitor Android & Add Logo
+      # 🚀 YAHAN HAI LOGO AUR ADMOB WALA MAGIC 
+      - name: Install Capacitor Android, Logo & AdMob
         run: |
           npm init -y
           npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor/assets
+          npm install @capacitor-community/admob
           npx cap init "ZingArena" "com.zingarena.app" --web-dir www
           npx cap add android
           
+          # Logo dalne ka code
           mkdir -p assets
           cp icon.png assets/icon.png
           npx capacitor-assets generate --android
+
+          # AndroidManifest mein AdMob Test App ID dalne ka code
+          sed -i '/<application/a \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/>' android/app/src/main/AndroidManifest.xml
 
       - name: Sync Capacitor
         run: |
