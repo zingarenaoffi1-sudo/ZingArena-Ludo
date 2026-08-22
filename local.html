@@ -5,18 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ultra Ludo - Local Offline</title>
     <link rel="stylesheet" href="style.css">
-    
-    <!-- FLUID PLAYER LIBRARIES -->
-    <script src="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.js"></script>
 </head>
 <body>
-    <!-- 🔥 VIDEO AD OVERLAY 🔥 -->
-    <div id="videoAdOverlay" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-        <p style="color: #ff9900; margin-bottom: 15px; font-weight: bold; font-size: 18px;">Game is loading... Please watch this short ad</p>
-        <video id="vast-video-player-local" style="width: 100%; max-width: 600px;"></video>
-        <button id="skipAdBtn" style="display:none; margin-top: 20px; background: #ef4444; color: white; padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">Skip Ad ⏭️</button>
-    </div>
-
     <div id="game-wrapper">
         <div class="game-header">
             <div class="logo-text">ULTRA LUDO (LOCAL)</div>
@@ -50,8 +40,15 @@
         <div id="mode-selection-modal" class="hidden"></div><div id="online-modal" class="hidden"></div>
     </div>
 
-    <!-- LOCAL AD BRIDGE LOGIC (3 Chance Logic) -->
+    <!-- NATIVE ADMOB LOCAL LOGIC (3 Chance Logic) -->
     <script>
+        // AdMob Initialize karna zaroori hai
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (window.Capacitor && Capacitor.Plugins.AdMob) {
+                await Capacitor.Plugins.AdMob.initialize({ initializeForTesting: true });
+            }
+        });
+
         let localMatchCount = 0;
         window.showAd = function() {
             localMatchCount++;
@@ -61,30 +58,22 @@
             }
         };
 
-        function playActualAd() {
-            let adOverlay = document.getElementById("videoAdOverlay");
-            let skipBtn = document.getElementById("skipAdBtn");
-            adOverlay.classList.remove("hidden");
-            skipBtn.style.display = "none";
-
-            let safetyTimer = setTimeout(() => { skipBtn.style.display = "block"; skipBtn.onclick = closeAd; }, 6000);
-
-            try {
-                if (!window.vPlayerLocal) {
-                    window.vPlayerLocal = fluidPlayer('vast-video-player-local', {
-                        layoutControls: { playButtonShowing: false, autoPlay: true, controlBar: { autoHide: true } },
-                        vastOptions: { adList: [{ roll: 'preRoll', vastTag: 'https://faithfuloccasion.com/d.mRFyzjdcGuNavGZQGyUB/_egmr9su/Z/UZl/kEPcTpcQzAMSzdUP2/NBjvknt/N/zSMvzyNuTCYG3QMqwx' }] }
+        async function playActualAd() {
+            if (window.Capacitor && Capacitor.Plugins.AdMob) {
+                const { AdMob } = Capacitor.Plugins;
+                try {
+                    // Test Interstitial ID
+                    await AdMob.prepareInterstitial({
+                        adId: 'ca-app-pub-3940256099942544/1033173712',
+                        isTesting: true
                     });
-                    window.vPlayerLocal.on('playing', function() { clearTimeout(safetyTimer); });
-                    window.vPlayerLocal.on('ended', closeAd);
-                    window.vPlayerLocal.on('error', function() { skipBtn.style.display = "block"; skipBtn.onclick = closeAd; });
-                } else { window.vPlayerLocal.play(); }
-            } catch (e) { closeAd(); }
-        }
-
-        function closeAd() {
-            document.getElementById("videoAdOverlay").classList.add("hidden");
-            if (window.vPlayerLocal) window.vPlayerLocal.pause();
+                    await AdMob.showInterstitial();
+                } catch(e) {
+                    console.log("Ad failed to load", e);
+                }
+            } else {
+                console.log("AdMob only works in the compiled APK!");
+            }
         }
     </script>
     <script src="local.js"></script>
