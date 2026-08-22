@@ -68,37 +68,65 @@
 
     <!-- NATIVE ADMOB ONLINE LOGIC (Odd/Even Logic) -->
     <script>
-        // AdMob Initialize
+        // 🔥 Jab bhi koi ad "dismiss" (band) ho, isse pata chalega ki ab aage badhna hai
+        let pendingAdResolve = null;
+
+        // AdMob Initialize + Listeners (ek hi baar, app open hote hi)
         document.addEventListener('DOMContentLoaded', async () => {
             if (window.Capacitor && Capacitor.Plugins.AdMob) {
-                await Capacitor.Plugins.AdMob.initialize({ initializeForTesting: true });
+                const { AdMob } = Capacitor.Plugins;
+                await AdMob.initialize({ initializeForTesting: true });
+
+                // User ne ad band ki -> ab aage ka kaam (matchmaking/room) shuru karo
+                AdMob.addListener('interstitialAdDismissed', () => {
+                    if (pendingAdResolve) { pendingAdResolve(); pendingAdResolve = null; }
+                });
+                // Ad dikhane me hi fail ho gaya -> tab bhi aage badho, atakna nahi hai
+                AdMob.addListener('interstitialAdFailedToShow', () => {
+                    if (pendingAdResolve) { pendingAdResolve(); pendingAdResolve = null; }
+                });
             }
         });
 
         let onlineAdCount = 0;
+        // Ab yeh function ek Promise return karta hai jo AD KE BAND HONE PAR resolve hota hai
         window.showAd = function() {
-            if (onlineAdCount % 2 === 0) {
-                playActualAd(); // Ad aayega
-            }
+            let shouldShowAd = (onlineAdCount % 2 === 0);
             onlineAdCount++;
+            if (shouldShowAd) {
+                return playActualAd(); // Ad aayega, uske dismiss hone tak wait karo
+            }
+            return Promise.resolve(); // Is baar ad nahi, turant aage badho
         };
 
-        async function playActualAd() {
-            if (window.Capacitor && Capacitor.Plugins.AdMob) {
-                const { AdMob } = Capacitor.Plugins;
-                try {
+        function playActualAd() {
+            return new Promise((resolve) => {
+                if (window.Capacitor && Capacitor.Plugins.AdMob) {
+                    const { AdMob } = Capacitor.Plugins;
+                    pendingAdResolve = resolve;
+
+                    // 🛡️ SAFETY NET: agar dismiss event kisi wajah se na aaye (ya ad load hi na ho),
+                    // to bhi max 8 second baad khud aage badh jayega - game kabhi hamesha ke liye atkega nahi
+                    const safetyTimer = setTimeout(() => {
+                        if (pendingAdResolve === resolve) { pendingAdResolve = null; resolve(); }
+                    }, 8000);
+
                     // Test Interstitial ID
-                    await AdMob.prepareInterstitial({
+                    AdMob.prepareInterstitial({
                         adId: 'ca-app-pub-3940256099942544/1033173712',
                         isTesting: true
+                    }).then(() => {
+                        return AdMob.showInterstitial();
+                    }).catch((e) => {
+                        console.log("Ad failed to load", e);
+                        clearTimeout(safetyTimer);
+                        if (pendingAdResolve === resolve) { pendingAdResolve = null; resolve(); }
                     });
-                    await AdMob.showInterstitial();
-                } catch(e) {
-                    console.log("Ad failed to load", e);
+                } else {
+                    console.log("AdMob only works in the compiled APK! (Browser me ad skip hoke turant aage badhega)");
+                    resolve();
                 }
-            } else {
-                console.log("AdMob only works in the compiled APK!");
-            }
+            });
         }
     </script>
     <script src="https://zingarena-ludo.onrender.com/socket.io/socket.io.js"></script>
