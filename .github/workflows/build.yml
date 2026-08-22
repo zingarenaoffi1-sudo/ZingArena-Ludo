@@ -38,7 +38,7 @@ jobs:
             --exclude='android' \
             ./ ./www/
 
-      # 🚀 YAHAN HAI LOGO AUR ADMOB WALA MAGIC 
+      # 🚀 YAHAN HAI LOGO AUR ADMOB WALA MAGIC (FIXED)
       - name: Install Capacitor Android, Logo & AdMob
         run: |
           npm init -y
@@ -52,8 +52,8 @@ jobs:
           cp icon.png assets/icon.png
           npx capacitor-assets generate --android
 
-          # AndroidManifest mein AdMob Test App ID dalne ka code
-          sed -i '/<application/a \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/>' android/app/src/main/AndroidManifest.xml
+          # AndroidManifest mein AdMob Test App ID dalne ka EK DUM SAFE code
+          sed -i 's|</application>|    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/>\n    </application>|' android/app/src/main/AndroidManifest.xml
 
       - name: Sync Capacitor
         run: |
